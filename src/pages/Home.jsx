@@ -1,61 +1,49 @@
-import MovieGrid from '../components/MovieGrid';
+import { useEffect, useState } from "react";
+import MovieGrid from "../components/MovieGrid";
+import LoadingSpinner from "../components/LoadingSpinner";
+import ErrorMessage from "../components/ErrorMessage";
+import { getPopularMovies } from "../services/movieService";
 
-// Static movie data for template
-const staticMovies = [
-  {
-    id: 1,
-    title: "The Shawshank Redemption",
-    poster_path: "/placeholder-poster.jpg",
-    vote_average: 9.3,
-    release_date: "1994-09-23"
-  },
-  {
-    id: 2,
-    title: "The Godfather",
-    poster_path: "/placeholder-poster.jpg",
-    vote_average: 9.2,
-    release_date: "1972-03-14"
-  },
-  {
-    id: 3,
-    title: "The Dark Knight",
-    poster_path: "/placeholder-poster.jpg",
-    vote_average: 9.0,
-    release_date: "2008-07-18"
-  },
-  {
-    id: 4,
-    title: "Pulp Fiction",
-    poster_path: "/placeholder-poster.jpg",
-    vote_average: 8.9,
-    release_date: "1994-10-14"
-  },
-  {
-    id: 5,
-    title: "Forrest Gump",
-    poster_path: "/placeholder-poster.jpg",
-    vote_average: 8.8,
-    release_date: "1994-06-23"
-  },
-  {
-    id: 6,
-    title: "Inception",
-    poster_path: "/placeholder-poster.jpg",
-    vote_average: 8.7,
-    release_date: "2010-07-16"
+function Home({ searchQuery, searchResults, searchLoading, searchError }) {
+  const [popularMovies, setPopularMovies] = useState([]);
+  const [popularLoading, setPopularLoading] = useState(false);
+  const [popularError, setPopularError] = useState("");
+
+  useEffect(() => {
+    const loadPopular = async () => {
+      try {
+        setPopularLoading(true);
+        setPopularError("");
+        const movies = await getPopularMovies();
+        setPopularMovies(movies);
+      } catch (err) {
+        setPopularError(err?.message || "Failed to load popular movies.");
+      } finally {
+        setPopularLoading(false);
+      }
+    };
+
+    loadPopular();
+  }, []);
+
+  const inSearchMode = (searchQuery || "").trim().length > 0;
+
+  const moviesToShow = inSearchMode ? searchResults : popularMovies;
+  const loadingToShow = inSearchMode ? searchLoading : popularLoading;
+  const errorToShow = inSearchMode ? searchError : popularError;
+
+    return (
+      <main className="main-content">
+        <div className="content-header">
+          <h1>Popular Movies</h1>
+        </div>
+        <MovieGrid
+          movies={moviesToShow}
+          loading={loadingToShow}
+          error={errorToShow}
+        />
+      </main>
+    );
   }
-];
-
-function Home() {
-  return (
-    <main className="main-content">
-      <div className="content-header">
-        <h2>Popular Movies</h2>
-        <p>Discover and save your favorite films</p>
-      </div>
-      <MovieGrid movies={staticMovies} />
-    </main>
-  );
-};
-
-export default Home;
+  
+  export default Home;
